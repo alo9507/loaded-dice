@@ -19,5 +19,9 @@ module.exports = {
     localhost: {
       url: process.env.PROVIDER_URL,
     },
+    kovan: {
+      url: process.env.PROVIDER_URL,
+      accounts: [process.env.WALLET_KEY],
+    },
   },
 };
