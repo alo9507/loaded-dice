@@ -10,7 +10,7 @@ task("accounts", "Prints the list of accounts", async (taskArgs, hre) => {
 });
 
 module.exports = {
-  solidity: "0.8.1",
+  solidity: "0.7.0",
   networks: {
     rinkeby: {
       url: process.env.PROVIDER_URL,
