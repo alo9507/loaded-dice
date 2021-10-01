@@ -18,6 +18,9 @@ contract LoadedDice is ERC721, Ownable, VRFConsumerBase {
     uint256 internal fee;
     uint256 public randomResult;
 
+    uint256 public centerRange = 100;
+    uint256 public amplitudeRange = 1;
+
     constructor()
         ERC721("LoadedDice", "LD")
         VRFConsumerBase(
@@ -34,7 +37,8 @@ contract LoadedDice is ERC721, Ownable, VRFConsumerBase {
     uint256 public MAX_LOADED_DICE = 10762;
     bool public saleIsActive = false;
 
-    mapping(uint256 => uint256[]) public diceWeighting;
+    mapping(uint256 => uint256[]) public diceAttributes;
+    mapping(bytes32 => address) public requests;
 
     function withdraw() public onlyOwner {
         uint256 balance = address(this).balance;
@@ -63,18 +67,20 @@ contract LoadedDice is ERC721, Ownable, VRFConsumerBase {
         for (uint256 i = 0; i < numberOfTokens; i++) {
             uint256 mintIndex = totalSupply();
             if (totalSupply() < MAX_LOADED_DICE) {
-                // call oracle for random number
-                _safeMint(msg.sender, mintIndex);
+                getRandomNumber();
             }
         }
     }
 
-    function getRandomNumber() public returns (bytes32 requestId) {
+    function getRandomNumber() public returns () {
         require(
             LINK.balanceOf(address(this)) >= fee,
             "Not enough LINK - fill contract with faucet"
         );
-        return requestRandomness(keyHash, fee);
+
+        bytes32 requestId = requestRandomness(keyHash, fee);
+        requests[requestId] = msg.sender;
+        return requestId;
     }
 
     /**
@@ -85,5 +91,16 @@ contract LoadedDice is ERC721, Ownable, VRFConsumerBase {
         override
     {
         randomResult = randomness;
+
+        uint256 tokenId = totalSupply();
+        _safeMint(requests[requestId], tokenId);
+
+        uint256[] diceAttributes = [];
+        for (uint256 i = 0; i < 3; i++) {
+            diceAttributes.push(randomness % centerRange);
+            diceAttributes.push(randomness % amplitudeRange);
+        }
+
+        diceAttributes[tokenId] = diceAttributes;
     }
 }
